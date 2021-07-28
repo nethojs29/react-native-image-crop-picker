@@ -342,9 +342,9 @@ RCT_EXPORT_METHOD(openPicker:(NSDictionary *)options
                 imagePickerController.assetCollectionSubtypes = albumsToShow;
             }
             
-            if ([[self.options objectForKey:@"cropping"] boolValue]) {
-                imagePickerController.mediaType = QBImagePickerMediaTypeImage;
-            } else {
+            // if ([[self.options objectForKey:@"cropping"] boolValue]) {
+            //     imagePickerController.mediaType = QBImagePickerMediaTypeImage;
+            // } else {
                 NSString *mediaType = [self.options objectForKey:@"mediaType"];
                 
                 if ([mediaType isEqualToString:@"photo"]) {
@@ -354,7 +354,7 @@ RCT_EXPORT_METHOD(openPicker:(NSDictionary *)options
                 } else {
                     imagePickerController.mediaType = QBImagePickerMediaTypeAny;
                 }
-            }
+            // }
             
             [imagePickerController setModalPresentationStyle: UIModalPresentationFullScreen];
             [[self getRootVC] presentViewController:imagePickerController animated:YES completion:nil];

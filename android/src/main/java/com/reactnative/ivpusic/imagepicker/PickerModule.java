@@ -225,14 +225,8 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     private void permissionsCheck(final Activity activity, final Promise promise, final List<String> requiredPermissions, final Callable<Void> callback) {
 
         List<String> missingPermissions = new ArrayList<>();
-        List<String> supportedPermissions = new ArrayList<>(requiredPermissions);
 
-        // android 11 introduced scoped storage, and WRITE_EXTERNAL_STORAGE no longer works there
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-            supportedPermissions.remove(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        }
-
-        for (String permission : supportedPermissions) {
+        for (String permission : requiredPermissions) {
             int status = ActivityCompat.checkSelfPermission(activity, permission);
             if (status != PackageManager.PERMISSION_GRANTED) {
                 missingPermissions.add(permission);
@@ -360,12 +354,12 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         try {
             final Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
 
-            if (cropping || mediaType.equals("photo")) {
+            if (mediaType.equals("photo")) {
                 galleryIntent.setType("image/*");
-                if (cropping) {
-                    String[] mimetypes = {"image/jpeg", "image/png"};
-                    galleryIntent.putExtra(Intent.EXTRA_MIME_TYPES, mimetypes);
-                }
+                
+                String[] mimetypes = {"image/jpeg", "image/png"};
+                galleryIntent.putExtra(Intent.EXTRA_MIME_TYPES, mimetypes);
+                
             } else if (mediaType.equals("video")) {
                 galleryIntent.setType("video/*");
             } else {
@@ -719,13 +713,20 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                     return;
                 }
 
-                if (cropping) {
+                
+                try {
+                    String path = RealPathUtil.getRealPathFromURI(activity, uri);
+                    validateVideo(path);
+                    getAsyncSelection(activity, uri, false);
+                } catch (Exception exc) {
+                    if (cropping) {
                     startCropping(activity, uri);
-                } else {
-                    try {
-                        getAsyncSelection(activity, uri, false);
-                    } catch (Exception ex) {
-                        resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, ex.getMessage());
+                    } else {
+                        try {
+                            getAsyncSelection(activity, uri, false);
+                        } catch (Exception ex) {
+                            resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, ex.getMessage());
+                        }
                     }
                 }
             }
